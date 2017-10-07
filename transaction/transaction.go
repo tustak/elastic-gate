@@ -1,6 +1,7 @@
 package transaction
 
 //import "time"
+//import "io/ioutil"
 import "fmt"
 import "time"
 import "bytes"
@@ -28,7 +29,6 @@ func New(LenderId string, BorrowerId string) Transaction{
 
 func (transaction *Transaction) InsertNew(cred *connection.Credentials) error{
     tnid := transNoID{transaction.LenderId, transaction.BorrowerId, transaction.Date}
-    fmt.Println(transaction)
     transJSONstr, _ := json.Marshal(tnid)
     indexName := "errors"
     typeName := "transaction"
@@ -39,11 +39,15 @@ func (transaction *Transaction) InsertNew(cred *connection.Credentials) error{
     client := &http.Client{}
     r, err := client.Do(req)
     if err == nil {
-        transaction.Id = "something"
+        var f map[string]interface{}
+        //bodyBytes, _ := ioutil.ReadAll(r.Body)
+        _ = json.NewDecoder(r.Body).Decode(&f)
+        fmt.Println(f["_id"])
+        transaction.Id = f["_id"].(string)
     } else {
         transaction.Id = ""
     }
-    fmt.Println(r)
+    fmt.Println(transaction)
     return err
 }
 
