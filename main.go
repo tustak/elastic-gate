@@ -15,5 +15,7 @@ func main(){
     fmt.Println(m["Name"])
     t := transaction.New("Lenderalksdfjlasdfj", "Borrower")
     _ = t.InsertNew(&c)
+    tBack, _ := transaction.GetById(t.Id, &c)
+    fmt.Println(tBack)
 
 }
