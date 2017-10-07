@@ -9,8 +9,6 @@ import "encoding/json"
 import "github.com/tustak/elastic-gate/connection"
 
 type Transaction struct{
-    Index string
-    Type string
     Id string
     LenderId string
     BorrowerId string
@@ -19,22 +17,22 @@ type Transaction struct{
 
 type transNoID struct{
     // The same than Transaction, but without Id field
-    Index string
-    Type string
     LenderId string
     BorrowerId string
     Date time.Time
 }
 
-func New(Index string, Type string, LenderId string, BorrowerId string) Transaction{
-    return Transaction{Index, Type, "", LenderId, BorrowerId, time.Now()}
+func New(LenderId string, BorrowerId string) Transaction{
+    return Transaction{"", LenderId, BorrowerId, time.Now()}
 }
 
 func (transaction *Transaction) InsertNew(cred *connection.Credentials) error{
-    tnid := transNoID{transaction.Index, transaction.Type,
-                      transaction.LenderId, transaction.BorrowerId, transaction.Date}
+    tnid := transNoID{transaction.LenderId, transaction.BorrowerId, transaction.Date}
+    fmt.Println(transaction)
     transJSONstr, _ := json.Marshal(tnid)
-    url := connection.GetInsertURI(cred, transaction.Index, transaction.Type)
+    indexName := "errors"
+    typeName := "transaction"
+    url := connection.GetInsertURI(cred, indexName, typeName)
     fmt.Println(url)
     req, err := http.NewRequest("POST", url, bytes.NewBuffer(transJSONstr))
     req.Header.Set("Content-Type", "application/json")
@@ -50,16 +48,16 @@ func (transaction *Transaction) InsertNew(cred *connection.Credentials) error{
 }
 
 func GetById(Id string) (Transaction, error){
-    t := Transaction{"", "", "", "", "", time.Now()}
+    t := Transaction{"", "", "", time.Now()}
     return t, nil
 }
 
 func GetByBorrowerId(UserId string) (Transaction, error){
-    t := Transaction{"", "", "", "", "", time.Now()}
+    t := Transaction{"", "", "", time.Now()}
     return t, nil
 }
 
 func GetByLenderId(UserId string) (Transaction, error){
-    t := Transaction{"", "", "", "", "", time.Now()}
+    t := Transaction{"", "", "", time.Now()}
     return t, nil
 }

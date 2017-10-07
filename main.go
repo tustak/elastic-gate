@@ -13,7 +13,7 @@ func main(){
     _ = json.Unmarshal(b, &f)
     m := f.(map[string]interface{})
     fmt.Println(m["Name"])
-    t := transaction.New("errors", "transaction", "", "")
+    t := transaction.New("Lenderalksdfjlasdfj", "Borrower")
     _ = t.InsertNew(&c)
 
 }
