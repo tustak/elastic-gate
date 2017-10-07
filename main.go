@@ -3,7 +3,6 @@ package main
 import "github.com/tustak/elastic-gate/connection"
 import "github.com/tustak/elastic-gate/transaction"
 import "fmt"
-import "time"
 import "encoding/json"
 
 func main(){
@@ -14,7 +13,7 @@ func main(){
     _ = json.Unmarshal(b, &f)
     m := f.(map[string]interface{})
     fmt.Println(m["Name"])
-    t := transaction.New("errors", "", "", "", time.Now())
+    t := transaction.New("errors", "transaction", "", "")
     _ = t.InsertNew(&c)
 
 }

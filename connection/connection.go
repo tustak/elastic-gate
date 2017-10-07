@@ -16,3 +16,10 @@ func GetSearchURI(cred * Credentials, indexName string, typeName string) string{
     }
     return searchURI
 }
+
+func GetInsertURI(cred * Credentials, indexName string, typeName string) string{
+    baseURI := BaseURI(cred)
+    var InsertURI string
+    InsertURI = fmt.Sprintf("%s/%s/%s/", baseURI, indexName, typeName)
+    return InsertURI
+}
