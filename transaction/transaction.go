@@ -10,6 +10,9 @@ import "net/http"
 import "encoding/json"
 import "github.com/tustak/elastic-gate/connection"
 
+var indexName string = "errors"
+var typeName string = "transaction"
+
 type Transaction struct{
     Id string
     LenderId string
@@ -31,8 +34,6 @@ func New(LenderId string, BorrowerId string) Transaction{
 func (transaction *Transaction) InsertNew(cred *connection.Credentials) error{
     tnid := transNoID{transaction.LenderId, transaction.BorrowerId, transaction.Date}
     transJSONstr, _ := json.Marshal(tnid)
-    indexName := "errors"
-    typeName := "transaction"
     url := connection.GetInsertURI(cred, indexName, typeName)
     req, err := http.NewRequest("POST", url, bytes.NewBuffer(transJSONstr))
     req.Header.Set("Content-Type", "application/json")
@@ -42,8 +43,7 @@ func (transaction *Transaction) InsertNew(cred *connection.Credentials) error{
         var f map[string]interface{}
         _ = json.NewDecoder(r.Body).Decode(&f)
         transaction.Id = f["_id"].(string)
-    } else {
-        transaction.Id = ""
+    } else { transaction.Id = ""
     }
     return err
 }
@@ -64,12 +64,45 @@ func GetById(Id string, cred *connection.Credentials) (Transaction, error){
     return t, err
 }
 
-func GetByBorrowerId(UserId string) (Transaction, error){
-    t := Transaction{"", "", "", time.Now()}
-    return t, nil
+func getByFieldId(FieldId string, Id string, cred *connection.Credentials) (
+    []interface{}, error){
+    url := connection.GetSearchURI(cred, indexName, typeName)
+    fmt.Println(url)
+    queryJson := fmt.Sprintf(`{
+        "query": {
+            "match": {
+                "%s": "%s"
+            }
+        }
+
+    }`, FieldId, Id)
+    req, _ := http.NewRequest("GET", url, bytes.NewBufferString(queryJson))
+    req.Header.Set("Content-Type", "application/json")
+    client := &http.Client{}
+    var err error
+    var data []interface{}
+    var f map[string] interface{}
+    r, _ := client.Do(req)
+    if r.Status == "200 OK" {
+        _ = json.NewDecoder(r.Body).Decode(&f)
+        fmt.Println(f["hits"].(map[string] interface{})["hits"])
+        data = f["hits"].(map[string] interface{})["hits"].([]interface{})
+        err = nil
+    } else {
+        err = errors.New("Could not process the request")
+    }
+    return data, err
 }
 
-func GetByLenderId(UserId string) (Transaction, error){
-    t := Transaction{"", "", "", time.Now()}
-    return t, nil
+
+func GetByBorrowerId(borrowerId string, cred *connection.Credentials) (
+    []interface{}, error){
+    var fieldId string = "BorrowerId"
+    return getByFieldId(fieldId,  borrowerId, cred)
+}
+
+func GetByLenderId(lenderId string, cred *connection.Credentials) (
+    []interface{}, error){
+    var fieldId string = "LenderId"
+    return getByFieldId(fieldId,  lenderId, cred)
 }
